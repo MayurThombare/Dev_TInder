@@ -9,7 +9,7 @@ app.use(express.json());
 
 app.post("/signup", async (req, res) => {
   try {
-    const userData = req.body
+    const userData = req.body;
 
     const user = new User(userData);
     await user.save();
@@ -20,66 +20,76 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.get("/user", async (req,res)=>{
-
+app.get("/user", async (req, res) => {
   const userEmail = req.body.email;
 
-
-  const users = await User.find({email: userEmail});
-  if(users.length===0){
-    res.status(404).send('No Users Found')
-  }else{
+  const users = await User.find({ email: userEmail });
+  if (users.length === 0) {
+    res.status(404).send("No Users Found");
+  } else {
     res.status(200).send(users);
   }
-})
+});
 
-app.patch('/user',async (req,res)=>{
+app.patch("/user/:userId", async (req, res) => {
   const data = req.body;
-  const userId = req.body.userId;
+  const userId = req.params?.userId;
 
-  try{
-    const updatedUser = await User. findByIdAndUpdate(userId, data, {returnDocument:'after',runValidators: true});
+  try {
+    const Allowed_Updates = ["photoUrl", "about", "gender", "skills", "age"];
+
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      Allowed_Updates.includes(k),
+    );
+    if (!isUpdateAllowed) {
+      throw new Error("Invalid Update");
+    }
+    if(data?.skills.length > 10){
+      throw new Error("skills cannot be more than 10");
+    }
+    const updatedUser = await User.findByIdAndUpdate(userId, data, {
+      returnDocument: "after",
+      runValidators: true,
+    });
     console.log(updatedUser);
-    if(!updatedUser){
-      res.status(404).send('User Not found for update');
-    }else{
-      res.send('User Updated');
+    if (!updatedUser) {
+      res.status(404).send("User Not found for update");
+    } else {
+      res.send("User Updated");
     }
     console.log(updatedUser);
-  }catch(err){
+  } catch (err) {
     res.status(500).send(`Error Updating User ${err}`);
   }
-})
+});
 
-app.delete('/user',async (req,res)=>{
+app.delete("/user", async (req, res) => {
   const userId = req.body.userId;
 
-  try{
+  try {
     const deletedUser = await User.findByIdAndDelete(userId);
-    if(!deletedUser){
-      res.status(404).send('User Not Found for deletion');
-    }else{
-      res.send('User Deleted Successfully');
+    if (!deletedUser) {
+      res.status(404).send("User Not Found for deletion");
+    } else {
+      res.send("User Deleted Successfully");
     }
-  }catch(err){
-    res.status(500).send('Error Deleting User');
+  } catch (err) {
+    res.status(500).send("Error Deleting User");
   }
-})
+});
 
-app.get('/feed', async (req,res)=>{
-  try{
+app.get("/feed", async (req, res) => {
+  try {
     const allUsers = await User.find();
-    if(!allUsers){
-      res.status(404).send('No Users found')
+    if (!allUsers) {
+      res.status(404).send("No Users found");
     }
-    res.status(200).send(allUsers)
-    
-   
-  }catch(err){
-    console.error('error fetching users', err);
-    res.status(500).send('Error fetching users');
+    res.status(200).send(allUsers);
+  } catch (err) {
+    console.error("error fetching users", err);
+    res.status(500).send("Error fetching users");
   }
-})
+});
 connectDB()
   .then(() => {
     console.log("Database connected successfully");
