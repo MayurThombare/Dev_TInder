@@ -52,11 +52,11 @@ app.post("/login", async (req, res) => {
 
     if (isPasswordValid) {
       // create a JWT token
-      const token = jwt.sign({ _id: user._id }, "DEV@Tinder$790");
+      const token = jwt.sign({ _id: user._id }, "DEV@Tinder$790", {expiresIn:"1h"});
       console.log("token", token);
       // Add token to the cookie and send the resposne back to the user
 
-      res.cookie("token", token);
+      res.cookie("token", token,{expires : new Date(Date.now()+ 8 * 3600000)});
       res.send("Login Successful");
     } else {
       throw new Error("Invalid Credentials");
