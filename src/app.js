@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const user = require("./model/user");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/auth");
 const app = express();
 app.use(cookieParser());
 
@@ -65,22 +66,9 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/profile", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
   try {
-    const cookies = req.cookies;
-    const { token } = cookies;
-    // validate my token
-
-    const decodedessage = jwt.verify(token, "DEV@Tinder$790");
-
-    const { _id } = decodedessage;
-    console.log("logged in user is - " + _id);
-
-    const user = await User.findById(_id);
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+   const user = req.user;
 
     res.send(user);
   } catch (err) {
@@ -158,6 +146,16 @@ app.get("/feed", async (req, res) => {
     res.status(500).send("Error fetching users");
   }
 });
+
+app.post("/sendconnectionrequest", userAuth, async (req,res)=>{
+
+const user = req.user;
+
+
+  console.log('sending connecting request');
+
+  res.send(user.firstName + " sending connection request")
+})
 connectDB()
   .then(() => {
     console.log("Database connected successfully");
