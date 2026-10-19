@@ -1,6 +1,6 @@
 const express = require("express");
 const User = require("../model/user");
-const { validateSignupData } = require("../utils/validation")
+const { validateSignupData } = require("../utils/validation");
 const bcrypt = require("bcrypt");
 const authRouter = express.Router();
 
@@ -46,7 +46,9 @@ authRouter.post("/login", async (req, res) => {
       console.log("token", token);
       // Add token to the cookie and send the resposne back to the user
 
-      res.cookie("token", token,{expires : new Date(Date.now()+ 8 * 3600000)});
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 8 * 3600000),
+      });
       res.send("Login Successful");
     } else {
       throw new Error("Invalid Credentials");
@@ -56,6 +58,13 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-module.exports={
-    authRouter
-}
+authRouter.post("/logout", (req, res) => {
+  res.cookie("token", null, { expires: new Date(Date.now()) });
+
+  res.send("Logout Successful");
+});
+
+
+module.exports = {
+  authRouter,
+};
