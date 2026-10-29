@@ -57,6 +57,47 @@ requestRouter.post(
   },
 );
 
+requestRouter.post("/request/review/:status/:requestId", userAuth, async(req,res)=>{
+  try{
+    const loggedInUser = req.user;
+  
+    // before writing api we have think of all corner cases
+    // Validate the status 
+    // if akshay has sent request to elon then receiver user liek elon has to be logged in 
+    // loggedInId = toUserId
+    //status should be interested
+
+    const {status, requestId} = req.params;
+
+    const allowedStatus = ["accepted", "rejected"];
+
+    if(!allowedStatus.includes(status)){
+      return res.status(400).json({message:"Status not allowed !"})
+    }
+
+    const connectionRequest = await ConnectionRequest.findOne({
+      _id: requestId,
+      toUserId: loggedInUser._id,
+      status: "interested",
+    })
+
+    if(!connectionRequest){
+      return res.status(404).json({
+        message:"Conection request not found",
+      })
+    }
+
+    connectionRequest.status= status
+
+    const data =  await connectionRequest.save();
+
+    res.json({message:"Connection Request "+status, data})
+
+  }catch(err){
+    res.status(400).send("ERROR "+ err.message);
+  }
+})
+
 requestRouter.get("/feed", async (req, res) => {
   try {
     const allUsers = await User.find();
