@@ -56,6 +56,36 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
   }
 });
 
+userRouter.get("/feed", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+
+    const connectionRequest = await ConnectionRequest.find({
+      $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
+    }).select("fromUserId toUserId");
+
+    const hideUsersFromFeed = new Set();
+
+    connectionRequest.forEach((row) => {
+      hideUsersFromFeed.add(row.fromUserId.toString());
+      hideUsersFromFeed.add(row.toUserId.toString());
+    });
+
+    const users = await User.find({
+      $and: [
+        {
+          _id: { $nin: Array.from(hideUsersFromFeed) },
+        },
+        { _id: { $ne: loggedInUser._id } },
+      ],
+    }).select(USER_SAFE_DATA);
+
+    res.send(users);
+  } catch (error) {
+    res.status(400).json({ message: "Error " + error.message });
+  }
+});
+
 module.exports = {
   userRouter,
 };
