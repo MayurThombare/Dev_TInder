@@ -17,12 +17,14 @@ const { profileRouter } = require("./routes/profile");
 const { requestRouter } = require("./routes/request");
 const { userRouter } = require("./routes/user");
 
+require("dotenv").config()
+
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 
-const port = 3000;
+const port = process.env.PORT;
 
 connectDB()
   .then(() => {
